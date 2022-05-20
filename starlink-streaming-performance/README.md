@@ -1,17 +1,15 @@
 
 ## Execution:
 
-`python scraper.py filename.csv 60 0`
+`python scraper.py -n filename.csv -t 60 -s 0`
 
 ## Input argument:
 
--h  how this help message and exit
+-n      the file name for the output csv file.
 
--n  the file name for the output csv file.
+-t      record time period (in seconds).
 
--t  record time period (in seconds).
-
--s  shutdown after task finish (1/0)
+-s      shutdown after task finish (1/0)
 
 # Note:
 
