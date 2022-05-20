@@ -5,11 +5,13 @@
 
 ## Input argument:
 
-1 - output file name
+-h  how this help message and exit
 
-2 - record time period (in seconds)
+-n  the file name for the output csv file.
 
-3 - shutdown after task finish (1/0)
+-t  record time period (in seconds).
+
+-s  shutdown after task finish (1/0)
 
 # Note:
 
