@@ -6,17 +6,15 @@ import pathlib
 import time
 import datetime 
 import pytz
-import sys
+# import sys
 import glob
-
-num_of_proc = 16
+import argparse
 
 def executeCMD(cmd):
   os.system(cmd)
 
-def starlinkToIps(index):
-  global num_of_proc
-  th_pool = Pool(num_of_proc)
+def starlinkToIps(index, nThreads):
+  th_pool = Pool(nThreads)
   dir_list = ["as_ip", "eu_ip", "na_ip", "sa_ip", "af_ip"]
 
   as_ip_list = ["baidu.com", "bilibili.com", "qq.com", "163.com"]
@@ -45,32 +43,39 @@ def starlinkToIps(index):
   th_pool.close()
   th_pool.join()
 
-if os.getuid() != 0:
-  print("Sorry, need root user to run this script... (TCP traceroute)")
-  exit()
+def main(args):
+  if os.getuid() != 0:
+    print("Sorry, need root user to run this script... (TCP traceroute)")
+    exit()
 
-# Find the max index in all log files, and use the max_index + 1 as the
-# new index to name the new log file
-max_index = 0
-for filename in glob.iglob("Starlink_to_IPs/" + '**/*.txt', recursive=True):
-  file_index = int(filename.split('.')[-2])
-  if file_index > max_index:
-    max_index = file_index
-max_index += 1
+  # Find the max index in all log files, and use the max_index + 1 as the
+  # new index to name the new log file
+  max_index = 0
+  for filename in glob.iglob("Starlink_to_IPs/" + '**/*.txt', recursive=True):
+    file_index = int(filename.split('.')[-2])
+    if file_index > max_index:
+      max_index = file_index
+  max_index += 1
 
-PST = pytz.timezone('US/Pacific')
-start_time = datetime.datetime.now().astimezone(PST)
+  PST = pytz.timezone('US/Pacific')
+  start_time = datetime.datetime.now().astimezone(PST)
 
-while True:
-  curr_date = datetime.datetime.now().astimezone(PST)
-  if curr_date.minute in [0,1] and curr_date.hour in [2, 12, 21]:
-    starlinkToIps(max_index)
-    # serversToStarlink()
-    max_index += 1
-  elif curr_date.minute in [0,1]:
-    time.sleep(60 * 60)
-  else:
-    time.sleep(60)
+  while True:
+    curr_date = datetime.datetime.now().astimezone(PST)
+    if curr_date.minute in [0,1] and curr_date.hour in [2, 12, 21]:
+      starlinkToIps(max_index, int(args.nThreads))
+      print("""Last test finished at {}""".format(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")))
+      max_index += 1
+    elif curr_date.minute in [0,1]:
+      time.sleep(60 * 60)
+    else:
+      time.sleep(60)
+  
+if __name__ == '__main__':
+  parser = argparse.ArgumentParser(description = "A large-scale Traceroute testing script.")
+  parser.add_argument('-n', '--nThreads', default='4', help='Number of threads will be used.')
+  args = parser.parse_args()
+  main(args)
 
 # def rootToAnotherUser(user_name, cmd):
 #   return "runuser -l " + user_name + " -c '" + cmd + "'"

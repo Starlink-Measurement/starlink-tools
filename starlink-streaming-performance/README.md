@@ -1,4 +1,3 @@
-
 ## Execution:
 
 `python scraper.py -n filename.csv -t 60 -s 0`
