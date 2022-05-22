@@ -8,12 +8,11 @@ import pandas as pd
 import argparse
 
 def main(args):
-    options = webdriver.ChromeOptions()
-
     # Using the local chrome configuration, because chrome does not allow you to login in a "program controlled browser".
     # So to play under a premium account, you need to login in your google account in your local chrome
-    options.add_argument("user-data-dir=c:/Users/19217/AppData/Local/Google/Chrome/User Data/")
-    driver = webdriver.Chrome(executable_path="C:/Program Files/Google/Chrome/chromedriver_win32/chromedriver.exe", options = options)
+    options = webdriver.EdgeOptions()
+    options.add_argument("user-data-dir=C:/Users/19217/AppData/Local/Microsoft/Edge/User Data")
+    driver = webdriver.Edge(executable_path="c:/Program Files (x86)/Microsoft/edgedriver_win32/msedgedriver.exe", options = options)
     driver.get("https://www.youtube.com/watch?v=KcMlPl9jArM")
 
     # open the stats of nerd and switch to the appropriate resolution. 
