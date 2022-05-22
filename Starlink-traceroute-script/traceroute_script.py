@@ -62,13 +62,14 @@ def main(args):
 
   while True:
     curr_date = datetime.datetime.now().astimezone(PST)
-    if curr_date.minute in [0,1] and curr_date.hour in [2, 12, 21]:
+    if curr_date.minute in [0,1] and curr_date.hour in range(0,24):
       starlinkToIps(max_index, int(args.nThreads))
       print("""Last test finished at {}""".format(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")))
       max_index += 1
-    elif curr_date.minute in [0,1]:
-      time.sleep(60 * 60)
+      # Sleep 3 minutes to avoid do multiple test in a short time
+      time.sleep(60 * 3)
     else:
+      # Sleep 60 seconds to check the next minute
       time.sleep(60)
   
 if __name__ == '__main__':
