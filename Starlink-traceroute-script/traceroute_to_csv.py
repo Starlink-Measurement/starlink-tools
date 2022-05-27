@@ -181,7 +181,7 @@ def main(args):
         drawTracePath(data, args.outputPath)
     
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description = "A script to convert large-scale traceroute raw data to csv and diagram.")
+    parser = argparse.ArgumentParser(description = "A script to convert large-scale traceroute raw data to csv and path diagram.")
     parser.add_argument('-p', '--path', required=True, help='''The path to the target folder, target = ["Starlink_to_IPs", "Servers_to_Starlink"]''')
     parser.add_argument('-o', '--outputPath', default='.', help='The path to the output folder')
     parser.add_argument('--pathGraph', action='store_true', help='Also output the traceroute path graph')

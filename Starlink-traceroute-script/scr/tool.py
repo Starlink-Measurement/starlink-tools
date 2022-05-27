@@ -89,7 +89,8 @@ def toTraceItem(path) -> traceItem:
             num_of_arrived_probs = 0
             for item_index in range(0, len(item_list)):
                 # This is a RTT number
-                if item_list[item_index].find("ms") != -1:
+                if item_list[item_index].find("ms") != -1 and \
+                    len(item_list[item_index]) == 2:
                     ave_delay += float(item_list[item_index - 1])
                     num_of_arrived_probs += 1
                 # This is a ip address
