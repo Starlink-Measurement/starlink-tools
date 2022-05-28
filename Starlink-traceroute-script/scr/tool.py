@@ -1,3 +1,4 @@
+from re import I
 from urllib.request import urlopen
 from itertools import chain
 import numpy as np
@@ -78,7 +79,9 @@ def toTraceItem(path) -> traceItem:
         for line in file.readlines()[1:]:
             # igore the no reply temporarily 
             item_list = line.split()
-            if(line.find('* * *') != -1 and len(line) == 10):
+            # len(line) < 10 here can prevent the traceroute process being
+            # interrupted, so it didn't reach 30
+            if(line.find('* * *') != -1 or len(line) < 10):
                 # This traceroute lost
                 if(item_list[0] == '30'):
                     trace_status = "Trace lost"
