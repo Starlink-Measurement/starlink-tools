@@ -170,8 +170,7 @@ def main(args):
             for domains in listdir("/".join([my_path, protocol, continent])):
                 newArea = targetDomain() 
                 newArea.set(protocol, continent, domains)
-                for txt_file in listdir("/".join([my_path, protocol, continent, domains])):
-                    newArea.traceInfos.append(toTraceItem("/".join([my_path, protocol, continent, domains, txt_file])))
+                newArea.traceInfos = toTraceItems("/".join([my_path, protocol, continent, domains]))
                 data.append(newArea)
     df = statisticalReport(data)
     if not os.path.exists(args.outputPath):

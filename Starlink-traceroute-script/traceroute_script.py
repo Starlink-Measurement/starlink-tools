@@ -1,20 +1,21 @@
 import os
 from multiprocessing import Pool
-# from socket import if_indextoname
-# from requests import get
 import pathlib
 import time
 import datetime 
 import pytz
-# import sys
-import glob
 import argparse
+import pandas as pd
+import numpy
+# from socket import if_indextoname
+# from requests import get
+# import sys
 
 def executeCMD(cmd):
-  os.system(cmd)
+  result = os.popen(cmd).read()
+  return result, int(time.time())
 
-def starlinkToIps(index, nThreads):
-  th_pool = Pool(nThreads)
+def starlinkToIps(nThreads):
   dir_list = ["as_ip", "eu_ip", "na_ip", "sa_ip", "af_ip"]
 
   as_ip_list = ["baidu.com", "bilibili.com", "qq.com", "163.com"]
@@ -27,45 +28,48 @@ def starlinkToIps(index, nThreads):
 
   s_to_ip_cmd = []
   work_path = str(pathlib.Path().resolve())
-  for i in range(0, len(ip_list)):
-    for ip in ip_list[i]:
-      path_tcp = work_path + "/Starlink_to_IPs/tcp/" + dir_list[i] + "/" + ip + "/"
-      # path_udp = work_path + "/Starlink_to_IPs/udp/" + dir_list[i] + "/" + ip + "/"
-      if os.path.exists(path_tcp) == False:
-        os.makedirs(path_tcp)
-      # if (os.path.exists(path_udp) == False):
-      #   os.makedirs(path_udp)
-      s_to_ip_cmd.append("traceroute -T --back " + ip + " > " + '"' + path_tcp + ip + "." + str(index) + '''.txt"''')
-      # s_to_ip_cmd.append("traceroute --back " + ip + " > " + path_udp + ip + "." + str(index) + ".txt")
+  for ips in ip_list:
+    for ip in ips:
+      s_to_ip_cmd.append("traceroute -T --back " + ip)
 
-  th_pool.map(executeCMD, s_to_ip_cmd)
-
+  th_pool = Pool(nThreads)
+  result = th_pool.map(executeCMD, s_to_ip_cmd)
   th_pool.close()
   th_pool.join()
+
+  re_index = 0
+  for i in range(0, len(ip_list)):
+    for ip in ip_list[i]:
+      path_tcp = work_path + "/Starlink_to_IPs/tcp/" + dir_list[i] + '/'
+      if not os.path.exists(path_tcp):
+        os.makedirs(path_tcp)
+      if not os.path.exists(path_tcp + ip + ".csv"):
+        start_id = 0
+      else:
+        csvFile = pd.read_csv(path_tcp + ip + ".csv")
+        start_id = csvFile.iloc[-1]['id'] + 1
+      trace_rs = list(filter(None, result[re_index][0].split('\n')))
+      trace_df = pd.DataFrame({'id': numpy.full(len(trace_rs), start_id),
+        'timestamp': numpy.full(len(trace_rs), result[re_index][1]),
+        'trace_string': trace_rs})
+      if start_id == 0:
+        trace_df.to_csv(path_tcp + ip + ".csv", index=False)
+      else:
+        trace_df.to_csv(path_tcp + ip + ".csv", index=False, mode='a', header=False)
+      re_index += 1
 
 def main(args):
   if os.getuid() != 0:
     print("Sorry, need root user to run this script... (TCP traceroute)")
     exit()
 
-  # Find the max index in all log files, and use the max_index + 1 as the
-  # new index to name the new log file
-  max_index = 0
-  for filename in glob.iglob("Starlink_to_IPs/" + '**/*.txt', recursive=True):
-    file_index = int(filename.split('.')[-2])
-    if file_index > max_index:
-      max_index = file_index
-  max_index += 1
-
   PST = pytz.timezone('US/Pacific')
-  start_time = datetime.datetime.now().astimezone(PST)
 
   while True:
     curr_date = datetime.datetime.now().astimezone(PST)
-    if curr_date.minute in [0,1] and curr_date.hour in range(0,24):
-      starlinkToIps(max_index, int(args.nThreads))
+    if curr_date.minute in [0, 1, 30, 31] and curr_date.hour in range(0,24):
+      starlinkToIps(int(args.nThreads))
       print("""Last test finished at {}""".format(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")))
-      max_index += 1
       # Sleep 3 minutes to avoid do multiple test in a short time
       time.sleep(60 * 3)
     else:

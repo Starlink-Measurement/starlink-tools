@@ -3,6 +3,7 @@ from urllib.request import urlopen
 from itertools import chain
 import numpy as np
 import json
+import pandas as pd
 
 class traceItem:
     def __init__(self) -> None:
@@ -71,21 +72,31 @@ def arrayFind(array, item):
         index = -1
     return index
 
-def toTraceItem(path) -> traceItem:
-    trace_info = traceItem()
-    trace_status = "Trace found"
-    with open(path, 'r') as file:
-        # igore the line "trace to ???" 
-        for line in file.readlines()[1:]:
-            # igore the no reply temporarily 
-            item_list = line.split()
-            # len(line) < 10 here can prevent the traceroute process being
+def toTraceItems(path):
+    trace_infos = []
+    trace_pd = pd.read_csv(path)
+    current_id = trace_pd['id'][0]
+    i = 0
+    while i < trace_pd.shape[0]:
+        current_item = traceItem()
+        trace_status = "Trace found"
+        while i < trace_pd.shape[0]:
+            if current_id != trace_pd['id'][i]:
+                break
+            # Three case to skip the current line
+            # 1. The current prob is lost (* * *)
+            # 2. len(line) < 10 here can prevent the traceroute process being
             # interrupted, so it didn't reach 30
-            if(line.find('* * *') != -1 or len(line) < 10):
+            # 3. This is the first line of traceroute result (e.g., treaceroute to ...)
+            line = trace_pd['trace_string'][i]
+            item_list = line.split()
+            if(line.find('* * *') != -1 or len(line) < 10 or \
+                line.find('traceroute to') != -1):
                 # This traceroute lost
                 if(item_list[0] == '30'):
                     trace_status = "Trace lost"
                 # This hop lost, go to the next hop
+                i += 1
                 continue
             hop_number = item_list[0]
             ave_delay = 0
@@ -102,11 +113,17 @@ def toTraceItem(path) -> traceItem:
                     ip = item_list[item_index][1:-1]
                     domain_name = item_list[item_index - 1]
             ave_delay /= num_of_arrived_probs
-            trace_info.add(hop_number, domain_name, ip, ave_delay)
-    if len(trace_info.delay) == 0:
-        trace_status = "Trace failed"
-    trace_info.status = trace_status
-    return trace_info
+            current_item.add(hop_number, domain_name, ip, ave_delay)
+            i += 1
+        if len(current_item.delay) == 0:
+            trace_status = "Trace failed"
+        current_item.status = trace_status
+        trace_infos.append(current_item)
+        # renew the id if i still in the range
+        if i < trace_pd.shape[0]:
+            current_id = trace_pd['id'][i]
+
+    return trace_infos
 
 def draw_map(m, scale=0.2):
     # draw a shaded-relief image
