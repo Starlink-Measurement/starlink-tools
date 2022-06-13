@@ -44,7 +44,8 @@ def main(args):
         bh_list.append(str(buffer_health.get_attribute("innerHTML")))
         cs_list.append(str(connection_speed.get_attribute("innerHTML")))
         na_list.append(str(network_activity.get_attribute("innerHTML")))
-        print(time_list[-1] + ", " + cs_list[-1] + ", " + na_list[-1] + ", " + bh_list[-1])
+        # Print the record  info
+        # print(time_list[-1] + ", " + cs_list[-1] + ", " + na_list[-1] + ", " + bh_list[-1])
         time_to_save += 1
     
         # Write the data into file every 300 seconds
