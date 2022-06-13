@@ -16,6 +16,10 @@ def main(args):
     # driver = webdriver.Chrome(executable_path="C:/Program Files/Google/Chrome/chromedriver_win32/chromedriver.exe", options = options)
     driver = webdriver.Chrome(executable_path="./chromedriver", options = options)
     driver.get("https://www.youtube.com/watch?v=KcMlPl9jArM")
+    # time.sleep(3)
+    
+    # # Open the stats for the nerds windows
+    # driver.execute_script('''document.querySelector("#movie_player > div.html5-video-info-panel").style = ""''')
 
     # open the stats of nerd and switch to the appropriate resolution. 
     input("Press any key when you ready. Ensure you login a premium account to avoid Ads!!!")
@@ -59,8 +63,10 @@ def main(args):
             bh_list = []
             cs_list = []
             na_list = []
-
-        time.sleep(1 - (time.time() - start_time))
+        
+        time_to_sleep = 1 - (time.time() - start_time)
+        if time_to_sleep > 0:
+            time.sleep(time_to_sleep)
 
     # Write the residual data into file
     if len(time_list) > 0:
