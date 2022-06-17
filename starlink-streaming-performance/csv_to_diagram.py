@@ -10,9 +10,6 @@ from matplotlib.dates import DateFormatter
 def main(args):
     df = pd.read_csv(args.path)
 
-    # You can trim the timestamp here
-    # df = df[df['timestamp'] < 1655042480]
-    
     df["timestamp"] = df["timestamp"].apply(lambda x: pd.to_datetime(x, unit = 's'))
     df["connection speed"] = df["connection speed"].apply(lambda x: int(''.join(c for c in x if c.isdigit())))
     df["network activity"] = df["network activity"].apply(lambda x: int(''.join(c for c in x if c.isdigit())))
@@ -21,7 +18,7 @@ def main(args):
     outage_log = []
     if args.outageFile1 != None:
         df_log = pd.read_csv(args.outageFile1)    
-        for cols in df_log['time']:
+        for cols in df_log['timestamp']:
             outage_log.append(cols)
         outage_log = pd.to_datetime(outage_log)
 
@@ -35,18 +32,21 @@ def main(args):
     if args.path2 != None:
         df2 = pd.read_csv(args.path2)
 
-        # You can trim the timestamp here
-        # df2 = df2[df2['timestamp'] > 1655023124]
-       
         df2["timestamp"] = df2["timestamp"].apply(lambda x: pd.to_datetime(x, unit = 's'))
         df2["connection speed"] = df2["connection speed"].apply(lambda x: int(''.join(c for c in x if c.isdigit())))
         df2["network activity"] = df2["network activity"].apply(lambda x: int(''.join(c for c in x if c.isdigit())))
         df2["buffer health"] = df2["buffer health"].apply(lambda x: float(''.join(c for c in x if c.isdigit() or c == '.')))
-        
+
+        # Only take the overlapped time period
+        lower_bound = max(df['timestamp'][0], df2['timestamp'][0])
+        upper_bound = min(df.iloc[-1]['timestamp'], df2.iloc[-1]['timestamp'])
+        df = df[(df['timestamp'] > lower_bound) & (df['timestamp'] < upper_bound)]
+        df2 = df2[(df2['timestamp'] > lower_bound) & (df2['timestamp'] < upper_bound)]
+
         outage_log2 = []
         if args.outageFile2 != None:
             df_log = pd.read_csv(args.outageFile2)    
-            for cols in df_log['time']:
+            for cols in df_log['timestamp']:
                 outage_log2.append(cols)
             outage_log2 = pd.to_datetime(outage_log2)
 
@@ -54,20 +54,20 @@ def main(args):
 
         ax1 = df.plot(x = 'timestamp', y = 'buffer health', kind = 'scatter', figsize=(10,6), ax=axis[0], xlabel="", ylabel="")
         for ots in outage_log:
-            ax1.axvline(x = ots, linestyle = '-', color = 'r')
-        # for times in timestamp_list:
-        #     ax1.axvline(x = times, linestyle = '-', color = 'y')
+            # Convert the ots into UTC time, since it is localized time (e.g., Vancouver)
+            utc = ots.tz_convert(None)
+            if (utc > lower_bound) and (utc < upper_bound):
+                ax1.axvline(x = ots, linestyle = '-', color = 'r')
         plt.autoscale(enable=True, axis='both', tight=None)
-        # plt.xticks(rotation=60)
         ax1.xaxis.set_major_formatter(hh_mm)
 
         ax2 = df2.plot(x = 'timestamp', y = 'buffer health', kind = 'scatter', figsize=(10,6), ax=axis[1], xlabel="", ylabel="")
-        # for times in timestamp_list:
-        #     ax2.axvline(x = times, linestyle = '-', color = 'y')
         for ots in outage_log2:
-            ax2.axvline(x = ots, linestyle = '-', color = 'r')
+            # Convert the ots into UTC time, since it is localized time (e.g., Vancouver)
+            utc = ots.tz_convert(None)
+            if utc > lower_bound and utc < upper_bound:
+                ax2.axvline(x = ots, linestyle = '-', color = 'r')
         plt.autoscale(enable=True, axis='both', tight=None)
-        # plt.xticks(rotation=60)
         ax2.xaxis.set_major_formatter(hh_mm)
 
         fig.supxlabel('Timestamp')
@@ -83,8 +83,6 @@ def main(args):
                     ylabel = 'buffer health (second)', kind = 'scatter', figsize=(10,6))
         for ots in outage_log:
             plt.axvline(x = ots, linestyle = '-', color = 'r')
-        # for times in timestamp_list:
-        #     plt.axvline(x = times, linestyle = '-', color = 'y')
         plt.autoscale(enable=True, axis='both', tight=None)
         plt.xticks(rotation=60)
         ax1.xaxis.set_major_formatter(hh_mm)
