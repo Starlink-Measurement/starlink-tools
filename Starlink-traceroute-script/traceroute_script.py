@@ -18,11 +18,17 @@ def executeCMD(cmd):
 def starlinkToIps(nThreads):
   dir_list = ["as_ip", "eu_ip", "na_ip", "sa_ip", "af_ip"]
 
-  as_ip_list = ["baidu.com", "bilibili.com", "qq.com", "163.com"]
-  eu_ip_list = ["euronews.com", "rt.com", "spotify.ua", "vk.com"]
-  na_ip_list = ["google.com", "youtube.com", "facebook.com", "amazon.com"]
-  sa_ip_list = ["nic.ar", "cgi.br", "ix.br", "nic.do"]
-  af_ip_list = ["whois.nic.ly", "whois.nic.dz", "cder.dz"]
+  # as_ip_list = ["baidu.com", "bilibili.com", "qq.com", "163.com"]
+  # eu_ip_list = ["euronews.com", "rt.com", "spotify.ua", "vk.com"]
+  # na_ip_list = ["google.com", "youtube.com", "facebook.com", "amazon.com"]
+  # sa_ip_list = ["nic.ar", "cgi.br", "ix.br", "nic.do"]
+  # af_ip_list = ["whois.nic.ly", "whois.nic.dz", "cder.dz"]
+
+  na_ip_list = ["11.0.0.0", "104.208.0.0", "100.20.0.0", "128.54.0.0", "139.178.128.0"]
+  as_ip_list = []
+  eu_ip_list = []
+  sa_ip_list = []
+  af_ip_list = []
 
   ip_list = [as_ip_list, eu_ip_list, na_ip_list, sa_ip_list, af_ip_list]
 
@@ -63,22 +69,21 @@ def main(args):
     print("Sorry, need root user to run this script... (TCP traceroute)")
     exit()
 
+  print("Script start...")
   PST = pytz.timezone('US/Pacific')
 
   while True:
-    curr_date = datetime.datetime.now().astimezone(PST)
-    if curr_date.minute in [0, 1, 30, 31] and curr_date.hour in range(0,24):
-      starlinkToIps(int(args.nThreads))
-      print("""Last test finished at {}""".format(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")))
-      # Sleep 3 minutes to avoid do multiple test in a short time
-      time.sleep(60 * 3)
-    else:
-      # Sleep 60 seconds to check the next minute
-      time.sleep(60)
-  
+    start_time = time.time()
+    starlinkToIps(int(args.nThreads))
+    print("""Last test finished at {}""".format(datetime.datetime.now().astimezone(PST).strftime("%Y/%m/%d %H:%M:%S")))
+    time_to_sleep = int(args.timeInterval) * 60 - (time.time() - start_time)
+    if time_to_sleep > 0:
+        time.sleep(time_to_sleep)
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description = "A large-scale Traceroute testing script.")
   parser.add_argument('-n', '--nThreads', default='4', help='Number of threads will be used.')
+  parser.add_argument('-tI', '--timeInterval', default='30', help='Set the time interval for the test (Unit: mins). (default=30mins)')
   args = parser.parse_args()
   main(args)
 
