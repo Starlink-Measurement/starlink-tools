@@ -24,7 +24,9 @@ def starlinkToIps(nThreads):
   # sa_ip_list = ["nic.ar", "cgi.br", "ix.br", "nic.do"]
   # af_ip_list = ["whois.nic.ly", "whois.nic.dz", "cder.dz"]
 
-  na_ip_list = ["11.0.0.0", "104.208.0.0", "100.20.0.0", "128.54.0.0", "139.178.128.0"]
+  # ISP_na = [Google (California) T, Facebook (Seattle) T, Apple (California) T, Microsoft (Virginia) T, Amazon (Virginia) T]
+
+  na_ip_list = ["74.125.142.94", "157.240.3.35", "17.253.144.10", "20.81.111.85", "107.170.145.187", "34.198.39.74"]
   as_ip_list = []
   eu_ip_list = []
   sa_ip_list = []
